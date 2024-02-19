@@ -20,7 +20,12 @@ pub struct PresentFiles{
     files: Vec<String>,
 }
 
-fn expand_path(path: &str) -> Result<PathBuf, std::io::Error> {
+#[derive(Debug)]
+pub struct FileContents {
+    contents: String,
+}
+
+pub fn expand_path(path: &str) -> Result<PathBuf, std::io::Error> {
     let expanded_path = full(path)
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Failed to expand path"))?;
     Ok(PathBuf::from(expanded_path.as_ref()))
@@ -29,7 +34,7 @@ fn expand_path(path: &str) -> Result<PathBuf, std::io::Error> {
 impl Toolbox{
     pub fn new(project_location: String)->Self{
         Toolbox{
-            project_location: PathBuf::from(project_location),
+            project_location: PathBuf::from(expand_path(&project_location).unwrap()),
         }
     }
 
@@ -45,6 +50,18 @@ impl Toolbox{
                 let pretty_string = format!("{:#?}", files);
                 pretty_string
             }
+            "read_file" => {
+                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
+                let contents = self.read_file(path);
+                let pretty_string = format!("{:#?}", contents);
+                pretty_string
+            }
+            "write_file" => {
+                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
+                let contents = self.write_file(path, "contents".to_string());
+                let pretty_string = format!("{:#?}", contents);
+                pretty_string
+            }
             _ => {
                 String::from("Tool not found")
             }
@@ -54,6 +71,8 @@ impl Toolbox{
     pub fn get_all_tools(&self)->Vec<Tool>{
         vec![
             self.get_view_files_tool(),
+            self.get_read_file_tool(),
+            self.write_file_tool(),
         ]
     }
 
@@ -81,17 +100,100 @@ impl Toolbox{
         }
     }
 
-    pub fn view_files(&self, path: RelativePath) -> PresentFiles{
-        let final_path = self.project_location.join(path.path);
-        println!("Viewing files at: {}", final_path.display());
+    pub fn get_read_file_tool(&self)->Tool{
+        let mut properties = HashMap::new();
+        properties.insert(
+            "path".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The relative path of the file you want to read.".to_string()),
+                ..Default::default()
+            }),
+        );
+        Tool{
+            r#type: ToolType::Function,
+            function: Function{
+                name: String::from("read_file"),
+                description: Some(String::from("Read the contents of a file.")),
+                parameters: FunctionParameters{
+                    schema_type: JSONSchemaType::Object,
+                    properties: Some(properties),
+                    required:Some(vec![String::from("path")]),
+                }
+            }
+        }
+    }
 
-        let paths = fs::read_dir(final_path).unwrap();
+    pub fn get_write_file_tool(&self)->Tool{
+        let mut properties = HashMap::new();
+        properties.insert(
+            "path".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The relative path of the file you want to write.".to_string()),
+                ..Default::default()
+            }),
+        );
+        properties.insert(
+            "contents".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The contents you want to write to the file.".to_string()),
+                ..Default::default()
+            }),
+        );
+        Tool{
+            r#type: ToolType::Function,
+            function: Function{
+                name: String::from("write_file"),
+                description: Some(String::from("Write the contents to a file.")),
+                parameters: FunctionParameters{
+                    schema_type: JSONSchemaType::Object,
+                    properties: Some(properties),
+                    required:Some(vec![String::from("path"), String::from("contents")]),
+                }
+            }
+        }
+    }
+
+    fn expand_path(&self, path: &str)->Result<String, std::io::Error>{
+        let final_path = self.project_location.join(path);
+        let expanded_path = expand_path(final_path.to_str().unwrap()).unwrap();
+        if !expanded_path.exists(){
+            return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Path does not exist"));
+        }
+        if !expanded_path.starts_with(&self.project_location){
+            return Err(std::io::Error::new(std::io::ErrorKind::PermissionDenied, "Path is not within the project location, please type only local paths."));
+        }
+        Ok(expanded_path.display().to_string())
+    }
+
+    pub fn view_files(&self, path: RelativePath) -> Result<PresentFiles, std::io::Error>{
+        let final_path = self.expand_path(&path.path)?;
+
+        let paths = fs::read_dir(final_path)?;
         let mut files = Vec::new();
         for path in paths {
             files.push(path.unwrap().path().display().to_string());
         }
-        PresentFiles{
+        Ok(PresentFiles{
             files,
-        }
+        })
+    }
+
+    pub fn read_file(&self, path: RelativePath) -> Result<FileContents, std::io::Error>{
+        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+
+        let contents = fs::read_to_string(final_path)?;
+        Ok(FileContents{
+            contents,
+        })
+    }
+
+    pub fn write_file(&self, path: RelativePath, contents: String) -> Result<(), std::io::Error>{
+        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+
+        fs::write(final_path, contents)?;
+        Ok(())
     }
 }

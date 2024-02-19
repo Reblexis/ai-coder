@@ -1,6 +1,7 @@
 use std::io;
 use std::fs;
 use std::path::Path;
+use crate::toolbox::expand_path;
 
 mod intent_getter;
 pub mod lm_wrapper;
@@ -14,8 +15,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut project_location = String::new();
     while project_location.is_empty() {
         io::stdin().read_line(&mut project_location)?;
-        project_location = project_location.trim().to_string();
-        if Path::new(&project_location).exists() {
+        project_location = String::from(expand_path(project_location.trim()).unwrap().to_str().unwrap());
+        if !Path::new(&project_location).exists() {
             println!("The location: {} does not exist. Please specify a valid location.", project_location);
             println!("Please specify the project location: ");
             project_location.clear();

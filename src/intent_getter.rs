@@ -1,6 +1,7 @@
 use std::io;
 use std::collections::HashMap;
 use std::env;
+use async_recursion::async_recursion;
 
 use openai_api_rs::v1::chat_completion::*;
 
@@ -9,7 +10,6 @@ use crate::toolbox::Toolbox;
 
 pub struct IntentGetter{
     pub lm: LMInterface,
-    pub toolbox: Toolbox,
 }
 
 impl IntentGetter{
@@ -25,13 +25,10 @@ Once he is satisfied, you will call the function 'edit_description' and pass the
                 content: Content::Text(SYSTEM_PROMPT.to_string()),
                 name: None,
             }
-        ],
-        toolbox.get_all_tools()
-        );
+        ], toolbox);
 
         IntentGetter{
             lm: lm_interface,
-            toolbox,
         }
     }
 
@@ -44,37 +41,7 @@ Once he is satisfied, you will call the function 'edit_description' and pass the
             let mut user_message = String::new();
             io::stdin().read_line(&mut user_message)?;
             let result = self.lm.send_message(&user_message).await?;
-
-            match result.choices[0].finish_reason {
-                None => {
-                    println!("No finish_reason");
-                    println!("{}", result.choices[0].message.content.clone().unwrap());
-                }
-                Some(FinishReason::stop) => {
-                    println!("Stop");
-                    println!("{}", result.choices[0].message.content.clone().unwrap());
-                }
-                Some(FinishReason::length) => {
-                    println!("Length");
-                }
-                Some(FinishReason::tool_calls) => {
-                    println!("ToolCalls");
-
-                    let tool_calls = result.choices[0].message.tool_calls.as_ref().unwrap();
-                    for tool_call in tool_calls {
-                        let name = tool_call.function.name.clone().unwrap();
-                        let args = tool_call.function.arguments.clone().unwrap();
-
-                        self.toolbox.call_tool(name, args);
-                    }
-                }
-                Some(FinishReason::content_filter) => {
-                    println!("ContentFilter");
-                }
-                Some(FinishReason::null) => {
-                    println!("Null");
-                }
-            }
+            println!("{}", result);
         }
 
         Ok(())

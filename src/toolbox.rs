@@ -62,6 +62,12 @@ impl Toolbox{
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
+            "create_dir" => {
+                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
+                let contents = self.create_dir(path);
+                let pretty_string = format!("{:#?}", contents);
+                pretty_string
+            }
             _ => {
                 String::from("Tool not found")
             }
@@ -72,7 +78,8 @@ impl Toolbox{
         vec![
             self.get_view_files_tool(),
             self.get_read_file_tool(),
-            self.write_file_tool(),
+            self.get_write_file_tool(),
+            self.get_create_dir_tool(),
         ]
     }
 
@@ -156,6 +163,30 @@ impl Toolbox{
         }
     }
 
+    pub fn get_create_dir_tool(&self)->Tool{
+        let mut properties = HashMap::new();
+        properties.insert(
+            "path".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The relative path of the directory you want to create.".to_string()),
+                ..Default::default()
+            }),
+        );
+        Tool{
+            r#type: ToolType::Function,
+            function: Function{
+                name: String::from("create_dir"),
+                description: Some(String::from("Create a directory.")),
+                parameters: FunctionParameters{
+                    schema_type: JSONSchemaType::Object,
+                    properties: Some(properties),
+                    required:Some(vec![String::from("path")]),
+                }
+            }
+        }
+    }
+
     fn expand_path(&self, path: &str)->Result<String, std::io::Error>{
         let final_path = self.project_location.join(path);
         let expanded_path = expand_path(final_path.to_str().unwrap()).unwrap();
@@ -188,6 +219,13 @@ impl Toolbox{
         Ok(FileContents{
             contents,
         })
+    }
+
+    pub fn create_dir(&self, path: RelativePath) -> Result<(), std::io::Error>{
+        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+
+        fs::create_dir(final_path)?;
+        Ok(())
     }
 
     pub fn write_file(&self, path: RelativePath, contents: String) -> Result<(), std::io::Error>{

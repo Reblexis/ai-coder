@@ -15,6 +15,12 @@ pub struct RelativePath{
     path: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct WriteFile{
+    path: String,
+    contents: String,
+}
+
 #[derive(Debug)]
 pub struct PresentFiles{
     files: Vec<String>,
@@ -56,9 +62,9 @@ impl Toolbox{
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
-            "write_file" => {
-                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
-                let contents = self.write_file(path, "contents".to_string());
+            "create_file"=>{
+                let info: WriteFile = serde_json::from_str(&parameters).unwrap();
+                let contents = self.create_file(RelativePath{path: info.path}, info.contents);
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
@@ -78,7 +84,7 @@ impl Toolbox{
         vec![
             self.get_view_files_tool(),
             self.get_read_file_tool(),
-            self.get_write_file_tool(),
+            self.get_create_file_tool(),
             self.get_create_dir_tool(),
         ]
     }
@@ -131,13 +137,13 @@ impl Toolbox{
         }
     }
 
-    pub fn get_write_file_tool(&self)->Tool{
+    pub fn get_create_file_tool(&self)->Tool{
         let mut properties = HashMap::new();
         properties.insert(
             "path".to_string(),
             Box::new(JSONSchemaDefine {
                 schema_type: Some(JSONSchemaType::String),
-                description: Some("The relative path of the file you want to write.".to_string()),
+                description: Some("The relative path of the file you want to create.".to_string()),
                 ..Default::default()
             }),
         );
@@ -152,8 +158,8 @@ impl Toolbox{
         Tool{
             r#type: ToolType::Function,
             function: Function{
-                name: String::from("write_file"),
-                description: Some(String::from("Write the contents to a file.")),
+                name: String::from("create_file"),
+                description: Some(String::from("Create a file and write the contents.")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
                     properties: Some(properties),
@@ -221,17 +227,17 @@ impl Toolbox{
         })
     }
 
+    pub fn create_file(&self, path: RelativePath, contents: String) -> Result<(), std::io::Error>{
+        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+
+        fs::write(final_path, contents)?;
+        Ok(())
+    }
+
     pub fn create_dir(&self, path: RelativePath) -> Result<(), std::io::Error>{
         let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
 
         fs::create_dir(final_path)?;
-        Ok(())
-    }
-
-    pub fn write_file(&self, path: RelativePath, contents: String) -> Result<(), std::io::Error>{
-        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
-
-        fs::write(final_path, contents)?;
         Ok(())
     }
 }

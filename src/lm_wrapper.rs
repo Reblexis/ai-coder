@@ -87,6 +87,8 @@ impl LMInterface{
             content: Content::Text(message.to_string()),
             name: None,
         });
-        return self.respond().await;
+        let response = self.respond().await;
+        println!("{:#?}", self.messages);
+        return response;
     }
 }

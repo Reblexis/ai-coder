@@ -3,9 +3,11 @@ use std::fs;
 use std::path::Path;
 use crate::toolbox::expand_path;
 
+
 mod intent_getter;
 pub mod lm_wrapper;
 pub mod toolbox;
+pub mod input_dialog;
 
 
 #[tokio::main]

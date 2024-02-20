@@ -4,9 +4,9 @@ use std::env;
 use async_recursion::async_recursion;
 
 use openai_api_rs::v1::chat_completion::*;
-
 use crate::lm_wrapper::LMInterface;
 use crate::toolbox::Toolbox;
+use crate::input_dialog::TextInputDialog;
 
 pub struct IntentGetter{
     pub lm: LMInterface,
@@ -36,12 +36,19 @@ Once he is satisfied, you will call the function 'edit_description' and pass the
         println!("Please describe what do you want to change about this project.");
 
         let mut ended = false;
-
         while !ended {
-            let mut user_message = String::new();
-            io::stdin().read_line(&mut user_message)?;
-            let result = self.lm.send_message(&user_message).await?;
-            println!("{}", result);
+            let receiver=
+                {
+                    let dialog = TextInputDialog::new("Type your message", "");
+                    dialog.get_input()
+                };
+            if let Ok(user_message) = receiver.recv() {
+                if !user_message.trim().is_empty() {
+                    let result = self.lm.send_message(&user_message).await?;
+                    println!("{}", result);
+                }
+            }
+
         }
 
         Ok(())
@@ -78,13 +85,21 @@ impl Coder{
         let mut ended = false;
 
         while !ended {
-            let mut user_message = String::new();
-            io::stdin().read_line(&mut user_message)?;
-            let result = self.lm.send_message(&user_message).await?;
-            println!("{}", result);
+            let receiver=
+                {
+                    let dialog = TextInputDialog::new("Type your message", "");
+                    dialog.get_input()
+                };
+            if let Ok(user_message) = receiver.recv() {
+                if !user_message.trim().is_empty() {
+                    let result = self.lm.send_message(&user_message).await?;
+                    println!("{}", result);
+                }
+            }
         }
 
         Ok(())
+
     }
 }
 

@@ -14,6 +14,7 @@ pub fn read_stdin() -> String {
             Err(error) => eprintln!("Error reading line: {}", error),
         }
     }
+    println!("\n -- Received! -- ");
 
     input
 }

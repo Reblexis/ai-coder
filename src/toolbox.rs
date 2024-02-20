@@ -32,6 +32,14 @@ pub struct FileContents {
     contents: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct EditFileInfo{
+    path: String,
+    start_line: usize,
+    end_line: usize,
+    new_contents: String,
+}
+
 pub fn expand_path(path: &str) -> Result<PathBuf, std::io::Error> {
     let expanded_path = full(path)
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Failed to expand path"))?;
@@ -75,6 +83,12 @@ impl Toolbox{
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
+            "edit_file" => {
+                let info: EditFileInfo = serde_json::from_str(&parameters).unwrap();
+                let contents = self.edit_file(info);
+                let pretty_string = format!("{:#?}", contents);
+                pretty_string
+            }
             _ => {
                 String::from("Tool not found")
             }
@@ -87,6 +101,7 @@ impl Toolbox{
             self.get_read_file_tool(),
             self.get_create_file_tool(),
             self.get_create_dir_tool(),
+            self.get_edit_file_tool(),
         ]
     }
 
@@ -128,7 +143,7 @@ impl Toolbox{
             r#type: ToolType::Function,
             function: Function{
                 name: String::from("read_file"),
-                description: Some(String::from("Read the contents of a file.")),
+                description: Some(String::from("Read the contents of a file with line numbers.")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
                     properties: Some(properties),
@@ -194,6 +209,54 @@ impl Toolbox{
         }
     }
 
+    pub fn get_edit_file_tool(&self)->Tool{
+        let mut properties = HashMap::new();
+        properties.insert(
+            "path".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The relative path of the file you want to edit.".to_string()),
+                ..Default::default()
+            }),
+        );
+        properties.insert(
+            "start_line".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::Number),
+                description: Some("The index (starting with 1) of the start line of the line range you will be replacing.".to_string()),
+                ..Default::default()
+            }),
+        );
+        properties.insert(
+            "end_line".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::Number),
+                description: Some("The index (starting with 1) of the first line you will not reach in the interval, the interval is [start_line, end_line).".to_string()),
+                ..Default::default()
+            }),
+        );
+        properties.insert(
+            "new_contents".to_string(),
+            Box::new(JSONSchemaDefine {
+                schema_type: Some(JSONSchemaType::String),
+                description: Some("The new contents you want to replace the interval with.".to_string()),
+                ..Default::default()
+            }),
+        );
+        Tool{
+            r#type: ToolType::Function,
+            function: Function{
+                name: String::from("edit_file"),
+                description: Some(String::from("Replace lines of the given file in a specified range [start_line, end_line) with new_contents. The new contents can have more or less lines than the interval size (even 0)")),
+                parameters: FunctionParameters{
+                    schema_type: JSONSchemaType::Object,
+                    properties: Some(properties),
+                    required:Some(vec![String::from("path"), String::from("start_line"), String::from("end_line"), String::from("new_contents")]),
+                }
+            }
+        }
+    }
+
     fn expand_path(&self, path: &str)->Result<String, std::io::Error>{
         let final_path = self.project_location.join(path);
         let expanded_path = expand_path(final_path.to_str().unwrap()).unwrap();
@@ -234,7 +297,7 @@ impl Toolbox{
 
         // Read line by line and then append line number to the start of each line and then join them into tring again (with newline char)
         let contents = fs::read_to_string(final_path)?;
-        let contents = contents.lines().enumerate().map(|(i, line)| format!("{}. {}", i, line)).collect::<Vec<String>>().join("\n");
+        let contents = contents.lines().enumerate().map(|(i, line)| format!("{}. {}", i+1, line)).collect::<Vec<String>>().join("\n");
         Ok(FileContents{
             contents,
         })
@@ -251,6 +314,18 @@ impl Toolbox{
         let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
 
         fs::create_dir(final_path)?;
+        Ok(())
+    }
+
+    pub fn edit_file(&self, info: EditFileInfo) -> Result<(), std::io::Error>{
+        let final_path = expand_path(self.project_location.join(info.path).to_str().unwrap())?;
+
+        let contents = fs::read_to_string(final_path.clone())?;
+        let mut lines: Vec<&str> = contents.lines().collect();
+
+        lines.splice((info.start_line-1)..(info.end_line-1), info.new_contents.lines());
+        let new_contents = lines.join("\n");
+        fs::write(final_path, new_contents)?;
         Ok(())
     }
 }

@@ -138,7 +138,7 @@ impl Toolbox{
             r#type: ToolType::Function,
             function: Function{
                 name: String::from("read_file"),
-                description: Some(String::from("Read the contents of a file with line numbers.")),
+                description: Some(String::from("Read the contents of a file with line numbers. The numbers aren't part of the file. They are added for edit purposes.")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
                     properties: Some(properties),
@@ -154,7 +154,7 @@ impl Toolbox{
             "path".to_string(),
             Box::new(JSONSchemaDefine {
                 schema_type: Some(JSONSchemaType::String),
-                description: Some("The relative path of the file you want to create.".to_string()),
+                description: Some("The relative path of the file you want to create".to_string()),
                 ..Default::default()
             }),
         );
@@ -162,7 +162,7 @@ impl Toolbox{
             "contents".to_string(),
             Box::new(JSONSchemaDefine {
                 schema_type: Some(JSONSchemaType::String),
-                description: Some("The contents you want to write to the file.".to_string()),
+                description: Some("The contents you want to write to the file. Avoid writing line numbers.".to_string()),
                 ..Default::default()
             }),
         );
@@ -170,7 +170,7 @@ impl Toolbox{
             r#type: ToolType::Function,
             function: Function{
                 name: String::from("create_file"),
-                description: Some(String::from("Create a file and write the contents.")),
+                description: Some(String::from("Create a file and write the contents. Avoid writing line numbers")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
                     properties: Some(properties),

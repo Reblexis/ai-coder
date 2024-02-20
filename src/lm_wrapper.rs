@@ -55,7 +55,7 @@ impl LMInterface{
                 let args = tool_call.function.arguments.clone().unwrap();
 
                 self.messages.push(ChatCompletionMessage {
-                    role: MessageRole::function,
+                    role: MessageRole::system,
                     content: Content::Text(format!("Calling tool: {} with arguments: {}", name, args)),
                     name: Some(name.clone()),
                 });

@@ -48,3 +48,43 @@ Once he is satisfied, you will call the function 'edit_description' and pass the
     }
 }
 
+pub struct Coder{
+    pub lm: LMInterface,
+}
+
+impl Coder{
+    pub fn new(project_location: String)->Self{
+        let mut toolbox = Toolbox::new(project_location.to_string());
+        const SYSTEM_PROMPT: &str = "You are a coding ai. The user will give you a document path containing the information about the \
+        update you should do to the project. If you think anything is unclear, ask. Otherwise you will implement step by step the changes, don't implement everything at once.
+         Just update a few things and finish. You will have chance to update more later. After you do a few changes, inform the user.";
+
+        let lm_interface = LMInterface::new(vec![
+            ChatCompletionMessage{
+                role: MessageRole::system,
+                content: Content::Text(SYSTEM_PROMPT.to_string()),
+                name: None,
+            }
+        ], toolbox);
+
+        Coder{
+            lm: lm_interface,
+        }
+    }
+
+    pub async fn start_coding(& mut self)->Result<(), Box<dyn std::error::Error>>{
+        println!("Please write the path of the document containing the information about the update you want to be done.");
+
+        let mut ended = false;
+
+        while !ended {
+            let mut user_message = String::new();
+            io::stdin().read_line(&mut user_message)?;
+            let result = self.lm.send_message(&user_message).await?;
+            println!("{}", result);
+        }
+
+        Ok(())
+    }
+}
+

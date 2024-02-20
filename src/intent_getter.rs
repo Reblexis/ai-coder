@@ -56,8 +56,8 @@ impl Coder{
     pub fn new(project_location: String)->Self{
         let mut toolbox = Toolbox::new(project_location.to_string());
         const SYSTEM_PROMPT: &str = "You are a coding ai. The user will give you a document path containing the information about the \
-        update you should do to the project. If you think anything is unclear, ask. Otherwise you will implement step by step the changes, don't implement everything at once.
-         Just update a few things and finish. You will have chance to update more later. After you do a few changes, inform the user.";
+        update you should do to the project. If you think anything is unclear, ask. Otherwise, you will look at the first undone step, \
+        and do it using the available tools. If you think it is impossible, say.";
 
         let lm_interface = LMInterface::new(vec![
             ChatCompletionMessage{

@@ -29,7 +29,7 @@ impl LMInterface{
     #[async_recursion]
     pub async fn respond(&mut self) -> Result<String, Box<dyn std::error::Error>> {
         let req = ChatCompletionRequest::new(
-            GPT4_0125_PREVIEW.to_string(),
+            GPT3_5_TURBO_0613.to_string(),
             self.messages.clone(),
         )
             .tools(self.toolbox.get_all_tools())

@@ -60,32 +60,27 @@ impl Toolbox{
 
         match tool_name.as_str() {
             "view_files" => {
-                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
-                let files = self.view_files(path);
+                let files = self.view_files(parameters);
                 let pretty_string = format!("{:#?}", files);
                 pretty_string
             }
             "read_file" => {
-                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
-                let contents = self.read_file(path);
+                let contents = self.read_file(parameters);
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
             "create_file"=>{
-                let info: WriteFile = serde_json::from_str(&parameters).unwrap();
-                let contents = self.create_file(RelativePath{path: info.path}, info.contents);
+                let contents = self.create_file(parameters);
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
             "create_dir" => {
-                let path: RelativePath = serde_json::from_str(&parameters).unwrap();
-                let contents = self.create_dir(path);
+                let contents = self.create_dir(parameters);
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
             "edit_file" => {
-                let info: EditFileInfo = serde_json::from_str(&parameters).unwrap();
-                let contents = self.edit_file(info);
+                let contents = self.edit_file(parameters);
                 let pretty_string = format!("{:#?}", contents);
                 pretty_string
             }
@@ -269,8 +264,10 @@ impl Toolbox{
         Ok(expanded_path.display().to_string())
     }
 
-    pub fn view_files(&self, path: RelativePath) -> Result<PresentFiles, std::io::Error>{
-        let final_path = self.expand_path(&path.path)?;
+    pub fn view_files(&self, parameters: String) -> Result<PresentFiles, std::io::Error>{
+        let info: RelativePath = serde_json::from_str(&parameters)?;
+
+        let final_path = self.expand_path(&info.path)?;
 
         let paths = fs::read_dir(final_path)?;
         let mut files = Vec::new();
@@ -278,7 +275,7 @@ impl Toolbox{
             match file {
                 Ok(file) => {
                     // join path.path and file_name
-                    let local_path = Path::new(&path.path.clone()).join(file.file_name().clone());
+                    let local_path = Path::new(&info.path.clone()).join(file.file_name().clone());
                     let file_type = file.file_type()?;
                     files.push(format!("{} -- {}", local_path.to_str().unwrap(), if file_type.is_dir(){"dir"} else {"file"}));
                 }
@@ -292,8 +289,10 @@ impl Toolbox{
         })
     }
 
-    pub fn read_file(&self, path: RelativePath) -> Result<FileContents, std::io::Error>{
-        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+    pub fn read_file(&self, parameters: String) -> Result<FileContents, std::io::Error>{
+        let info: RelativePath = serde_json::from_str(&parameters)?;
+
+        let final_path = expand_path(self.project_location.join(info.path).to_str().unwrap())?;
 
         // Read line by line and then append line number to the start of each line and then join them into tring again (with newline char)
         let contents = fs::read_to_string(final_path)?;
@@ -303,21 +302,24 @@ impl Toolbox{
         })
     }
 
-    pub fn create_file(&self, path: RelativePath, contents: String) -> Result<(), std::io::Error>{
-        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+    pub fn create_file(&self, parameters: String) -> Result<(), std::io::Error>{
+        let info: WriteFile = serde_json::from_str(&parameters)?;
+        let final_path = expand_path(self.project_location.join(info.path).to_str().unwrap())?;
 
-        fs::write(final_path, contents)?;
+        fs::write(final_path, info.contents)?;
         Ok(())
     }
 
-    pub fn create_dir(&self, path: RelativePath) -> Result<(), std::io::Error>{
-        let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
+    pub fn create_dir(&self, parameters: String) -> Result<(), std::io::Error>{
+        let info: RelativePath = serde_json::from_str(&parameters)?;
+        let final_path = expand_path(self.project_location.join(info.path).to_str().unwrap())?;
 
         fs::create_dir(final_path)?;
         Ok(())
     }
 
-    pub fn edit_file(&self, info: EditFileInfo) -> Result<(), std::io::Error>{
+    pub fn edit_file(&self, parameters: String) -> Result<(), std::io::Error>{
+        let info: EditFileInfo = serde_json::from_str(&parameters)?;
         let final_path = expand_path(self.project_location.join(info.path).to_str().unwrap())?;
 
         let contents = fs::read_to_string(final_path.clone())?;

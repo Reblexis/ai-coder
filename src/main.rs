@@ -27,8 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Selected project location: {}", project_location);
     println!("-----------------------------------");
 
-    /*let mut intent_getter = intent_getter::IntentGetter::new(project_location.clone());
-    intent_getter.get_intent().await?;*/
+    let mut intent_getter = intent_getter::IntentGetter::new(project_location.clone());
+    intent_getter.get_intent().await?;
 
     let mut coder = intent_getter::Coder::new(project_location.clone());
     coder.start_coding().await?;

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::exit;
 use serde::{Deserialize, Serialize};
 use shellexpand::full;
 
@@ -210,8 +211,18 @@ impl Toolbox{
 
         let paths = fs::read_dir(final_path)?;
         let mut files = Vec::new();
-        for path in paths {
-            files.push(path.unwrap().path().display().to_string());
+        for file in paths {
+            match file {
+                Ok(file) => {
+                    // join path.path and file_name
+                    let local_path = Path::new(&path.path.clone()).join(file.file_name().clone());
+                    let file_type = file.file_type()?;
+                    files.push(format!("{} -- {}", local_path.to_str().unwrap(), if file_type.is_dir(){"dir"} else {"file"}));
+                }
+                Err(e) => {
+                    return Err(e);
+                }
+            }
         }
         Ok(PresentFiles{
             files,
@@ -221,7 +232,9 @@ impl Toolbox{
     pub fn read_file(&self, path: RelativePath) -> Result<FileContents, std::io::Error>{
         let final_path = expand_path(self.project_location.join(path.path).to_str().unwrap())?;
 
+        // Read line by line and then append line number to the start of each line and then join them into tring again (with newline char)
         let contents = fs::read_to_string(final_path)?;
+        let contents = contents.lines().enumerate().map(|(i, line)| format!("{}. {}", i, line)).collect::<Vec<String>>().join("\n");
         Ok(FileContents{
             contents,
         })

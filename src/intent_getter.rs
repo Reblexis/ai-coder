@@ -1,12 +1,7 @@
-use std::io;
-use std::collections::HashMap;
-use std::env;
-use async_recursion::async_recursion;
-
 use openai_api_rs::v1::chat_completion::*;
 use crate::lm_wrapper::LMInterface;
 use crate::toolbox::Toolbox;
-use crate::input_dialog::TextInputDialog;
+use crate::input_dialog::read_stdin;
 
 pub struct IntentGetter{
     pub lm: LMInterface,
@@ -37,19 +32,15 @@ Once he is satisfied, you will call the function 'edit_description' and pass the
 
         let mut ended = false;
         while !ended {
-            let receiver=
-                {
-                    let dialog = TextInputDialog::new("Type your message", "");
-                    dialog.get_input()
-                };
-            if let Ok(user_message) = receiver.recv() {
-                if !user_message.trim().is_empty() {
-                    let result = self.lm.send_message(&user_message).await?;
-                    println!("{}", result);
-                }
+            let user_message = read_stdin();
+            if user_message.trim().is_empty() {
+                println!("Empty message! Please write a valid message.");
+                continue;
             }
-
+            let result = self.lm.send_message(&user_message).await?;
+            println!("{}", result);
         }
+
 
         Ok(())
     }
@@ -85,17 +76,13 @@ impl Coder{
         let mut ended = false;
 
         while !ended {
-            let receiver=
-                {
-                    let dialog = TextInputDialog::new("Type your message", "");
-                    dialog.get_input()
-                };
-            if let Ok(user_message) = receiver.recv() {
-                if !user_message.trim().is_empty() {
-                    let result = self.lm.send_message(&user_message).await?;
-                    println!("{}", result);
-                }
+            let user_message = read_stdin();
+            if user_message.trim().is_empty() {
+                println!("Empty message! Please write a valid message.");
+                continue;
             }
+            let result = self.lm.send_message(&user_message).await?;
+            println!("{}", result);
         }
 
         Ok(())

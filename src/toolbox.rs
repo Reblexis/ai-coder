@@ -1,3 +1,6 @@
+mod file_tools;
+mod toolbox;
+
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};

@@ -4,10 +4,11 @@ use std::path::Path;
 use crate::toolbox::expand_path;
 
 
-mod intent_getter;
+mod worker;
 pub mod lm_wrapper;
 pub mod toolbox;
 pub mod input_dialog;
+mod manager_agent;
 
 
 #[tokio::main]
@@ -32,7 +33,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     /*let mut intent_getter = intent_getter::IntentGetter::new(project_location.clone());
     intent_getter.get_intent().await?;*/
 
-    let mut coder = intent_getter::Coder::new(project_location.clone());
+    let mut coder = worker::Coder::new(project_location.clone());
     coder.start_coding().await?;
     Ok(())
 }

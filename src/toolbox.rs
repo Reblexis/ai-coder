@@ -1,6 +1,9 @@
 pub mod file_commands;
+mod worker_commands;
 
-use std::io;
+use std::fs;
+use std::io::Error;
+use openai_api_rs::v1::chat_completion::*;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};

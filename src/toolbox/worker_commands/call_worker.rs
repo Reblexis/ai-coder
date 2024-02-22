@@ -17,9 +17,10 @@ impl Command for CallWorkerCommand {
 
         // Call the worker
         let mut rt = Runtime::new().unwrap();
-        let result = rt.block_on(worker::call_worker(params.system_message, project_location))?;
+        let result = rt.block_on(worker::call_worker(params.system_message, project_location));
 
-        Ok(result)
+        let pretty_result = format!("{:#?}", result);
+        Ok({pretty_result})
     }
 
     fn get_tool_info(&self) -> Tool{

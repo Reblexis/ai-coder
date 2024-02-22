@@ -10,7 +10,7 @@ use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 use openai_api_rs::v1::chat_completion::*;
 
-pub trait Command {
+pub trait Command: Send {
     fn execute(&self, parameters: &str, project_location: PathBuf) -> Result<String, std::io::Error>;
     fn get_tool_info(&self) -> Tool;
 }

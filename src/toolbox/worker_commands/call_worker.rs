@@ -1,6 +1,7 @@
 use super::*;
 use crate::lm_wrapper::LMInterface;
 use tokio::runtime::Runtime;
+use crate::worker;
 
 pub struct CallWorkerCommand;
 
@@ -16,7 +17,9 @@ impl Command for CallWorkerCommand {
 
         // Call the worker
         let mut rt = Runtime::new().unwrap();
-        let result = rt.block_on(worker::call_worker(params.system_message))?;
+        let result = rt.block_on(worker::call_worker(params.system_message, project_location))?;
+
+        Ok(result)
     }
 
     fn get_tool_info(&self) -> Tool{

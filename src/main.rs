@@ -11,8 +11,7 @@ pub mod input_dialog;
 mod manager_agent;
 
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Specify the project location
     println!("Please specify the project location: ");
     let mut project_location = String::new();
@@ -39,6 +38,6 @@ You also have to check and verify their work is correct and working. If not you 
 You have to give very specific instructions to the coding workers so there cannot be any ambiguity in their task descriptions. Give them only very small tasks as they can
 only do a small chunk of coding at a time. Make sure to always check their work.");
 
-    worker::talk_to_worker(manager_behaviour, project_location.clone()).await?;
+    worker::talk_to_worker(manager_behaviour, project_location.clone());
     Ok(())
 }

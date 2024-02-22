@@ -25,13 +25,13 @@ impl Worker{
         }
     }
 
-    pub async fn send_message(&mut self, message: &str)->Result<String, Box<dyn std::error::Error>>{
-        let result = self.lm.send_message(message).await?;
+    pub fn send_message(&mut self, message: &str)->Result<String, Box<dyn std::error::Error>>{
+        let result = self.lm.send_message(message)?;
         Ok(result)
     }
 }
 
-pub async fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), Box<dyn std::error::Error>>{
+pub fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), Box<dyn std::error::Error>>{
     let mut toolbox = Toolbox::new(project_location.clone());
     toolbox.add_tools(worker_commands::get_worker_commands());
     toolbox.add_tools(file_commands::get_file_read_tools());
@@ -43,7 +43,7 @@ pub async fn talk_to_worker(behaviour: String, project_location: PathBuf)->Resul
             println!("Empty message! Please write a valid message.");
             continue;
         }
-        let result = worker.send_message(&user_message).await?;
+        let result = worker.send_message(&user_message)?;
         println!("{}", result);
     }
     Ok(())
@@ -57,7 +57,7 @@ pub async fn call_worker(message: String, project_location: PathBuf)->Result<Str
      If you think the task is too long and that you wouldn't be able to complete it in one go, report that back to the user.\
       Don't ask any questions, only report back. You won't get any response. The user is able to send only the initial message.");
     let mut worker = Worker::new(project_location.clone(), system_message, toolbox);
-    let result = worker.send_message(&message).await?;
+    let result = worker.send_message(&message)?;
 
     Ok(result)
 }

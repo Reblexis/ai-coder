@@ -3,9 +3,9 @@ use openai_api_rs::v1::api::Client;
 use openai_api_rs::v1::chat_completion::*;
 use openai_api_rs::v1::common::{GPT3_5_TURBO_0613, GPT4_0125_PREVIEW, GPT4_0613};
 use std::env;
-use async_recursion::async_recursion;
 use async_std::task;
 use std::time::Duration;
+use std::thread;
 
 use crate::toolbox::Toolbox;
 
@@ -26,8 +26,7 @@ impl LMInterface{
     pub fn add_message(&mut self, message: ChatCompletionMessage){
         self.messages.push(message);
     }
-    #[async_recursion]
-    pub async fn respond(&mut self) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn respond(&mut self) -> Result<String, Box<dyn std::error::Error>> {
         let req = ChatCompletionRequest::new(
             GPT4_0125_PREVIEW.to_string(),
             self.messages.clone(),
@@ -41,7 +40,7 @@ impl LMInterface{
                 Ok(response) => break response, // Exit loop on success
                 Err(e) => {
                     println!("Error occurred: {}", e);
-                    task::sleep(Duration::from_secs(20)).await;
+                    thread::sleep(Duration::from_secs(20));
                     // Optionally, consider adding a retry limit and error handling here
                 }
             }
@@ -68,7 +67,7 @@ impl LMInterface{
                 });
 
                 // Recursively call respond, consider redesign to avoid deep recursion
-                return self.respond().await;
+                return self.respond();
             }
         }
 
@@ -80,14 +79,13 @@ impl LMInterface{
 
         Ok(response.choices[0].message.content.clone().unwrap_or_default())
     }
-    #[async_recursion]
-    pub async fn send_message(&mut self, message: &str) -> Result<String, Box<dyn std::error::Error>> {
+    pub fn send_message(&mut self, message: &str) -> Result<String, Box<dyn std::error::Error>> {
         self.messages.push(ChatCompletionMessage {
             role: MessageRole::user,
             content: Content::Text(message.to_string()),
             name: None,
         });
-        let response = self.respond().await;
+        let response = self.respond();
         println!("{:#?}", self.messages);
         return response;
     }

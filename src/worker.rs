@@ -34,6 +34,7 @@ impl Worker{
 pub async fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), Box<dyn std::error::Error>>{
     let mut toolbox = Toolbox::new(project_location.clone());
     toolbox.add_tools(worker_commands::get_worker_commands());
+    toolbox.add_tools(file_commands::get_file_read_tools());
     let mut worker = Worker::new(project_location, behaviour, toolbox);
     let mut ended = false;
     while !ended {

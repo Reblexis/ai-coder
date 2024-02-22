@@ -60,7 +60,7 @@ impl LMInterface{
                     name: Some(name.clone()),
                 });
 
-                let ans = self.toolbox.call_tool(name.clone(), args);
+                let ans = self.toolbox.call_tool(name.as_str(), args.as_str())?;
                 self.messages.push(ChatCompletionMessage {
                     role: MessageRole::function,
                     content: Content::Text(ans),

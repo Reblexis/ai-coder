@@ -2,13 +2,14 @@ use openai_api_rs::v1::chat_completion::*;
 use crate::lm_wrapper::LMInterface;
 use crate::toolbox::Toolbox;
 use crate::input_dialog::read_stdin;
+use std::path::PathBuf;
 
 pub struct Worker{
     pub lm: LMInterface,
 }
 
 impl Worker{
-    pub fn new(project_location: String, behaviour: String)->Self{
+    pub fn new(project_location: PathBuf, behaviour: String)->Self{
         let mut toolbox = Toolbox::new(project_location);
 
         let lm_interface = LMInterface::new(vec![
@@ -42,4 +43,3 @@ impl Worker{
         Ok(())
     }
 }
-

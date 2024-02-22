@@ -1,10 +1,11 @@
 pub mod file_commands;
-mod worker_commands;
+pub mod worker_commands;
 
 use std::fs;
 use std::io::Error;
 use openai_api_rs::v1::chat_completion::*;
 use std::collections::HashMap;
+use std::hash::Hash;
 use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 use openai_api_rs::v1::chat_completion::*;
@@ -29,8 +30,12 @@ impl Toolbox {
         toolbox
     }
 
-    fn register_tool(&mut self, name: &str, tool: Box<dyn Command>) {
-        self.tools.insert(name.to_string(), tool);
+    pub fn add_tools(&mut self, tools: HashMap<String, Box<dyn Command>>) {
+        self.tools.extend(tools);
+    }
+
+    pub fn get_tools_info(&self) -> Vec<Tool> {
+        self.tools.values().map(|tool| tool.get_tool_info()).collect()
     }
 
     pub fn call_tool(&self, tool_name: &str, parameters: &str) -> Result<String, std::io::Error> {

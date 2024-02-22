@@ -32,7 +32,7 @@ impl LMInterface{
             GPT4_0125_PREVIEW.to_string(),
             self.messages.clone(),
         )
-            .tools(self.toolbox.get_all_tools())
+            .tools(self.toolbox.get_tools_info())
             .tool_choice(ToolChoiceType::Auto);
 
         // Loop until a successful API call

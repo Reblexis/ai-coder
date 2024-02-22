@@ -1,5 +1,6 @@
 use super::*;
-
+use crate::lm_wrapper::LMInterface;
+use tokio::runtime::Runtime;
 
 pub struct CallWorkerCommand;
 
@@ -13,6 +14,9 @@ impl Command for CallWorkerCommand {
         // Deserialize the parameters
         let params: CallWorkerParams = serde_json::from_str(parameters)?;
 
+        // Call the worker
+        let mut rt = Runtime::new().unwrap();
+        let result = rt.block_on(worker::call_worker(params.system_message))?;
     }
 
     fn get_tool_info(&self) -> Tool{

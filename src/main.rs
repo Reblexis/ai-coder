@@ -38,6 +38,6 @@ You also have to check and verify their work is correct and working. If not you 
 You have to give very specific instructions to the coding workers so there cannot be any ambiguity in their task descriptions. Give them only very small tasks as they can
 only do a small chunk of coding at a time. Make sure to always check their work.");
 
-    worker::talk_to_worker(manager_behaviour, project_location.clone());
+    worker::talk_to_worker(manager_behaviour, project_location.clone())?;
     Ok(())
 }

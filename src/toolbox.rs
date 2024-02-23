@@ -1,5 +1,6 @@
 pub mod file_commands;
 pub mod worker_commands;
+mod test_commands;
 
 use std::fs;
 use std::io::Error;

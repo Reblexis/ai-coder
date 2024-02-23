@@ -21,7 +21,7 @@ impl Command for EditFileCommand {
         let contents = fs::read_to_string(path.clone())?;
         let mut lines: Vec<&str> = contents.lines().collect();
 
-        lines.splice((params.start_line-1)..(params.end_line-1), params.new_contents.lines());
+        lines.splice((params.start_line-1)..(params.end_line), params.new_contents.lines());
         let new_contents = lines.join("\n");
         fs::write(path, new_contents)?;
         Ok("Successfully edited file.".to_string())
@@ -49,7 +49,7 @@ impl Command for EditFileCommand {
             "end_line".to_string(),
             Box::new(JSONSchemaDefine {
                 schema_type: Some(JSONSchemaType::Number),
-                description: Some("The index (starting with 1) of the first line you will not reach in the interval, the interval is [start_line, end_line).".to_string()),
+                description: Some("The index of the last line you will be replacing.".to_string()),
                 ..Default::default()
             }),
         );
@@ -65,7 +65,9 @@ impl Command for EditFileCommand {
             r#type: ToolType::Function,
             function: Function{
                 name: String::from("edit_file"),
-                description: Some(String::from("Replace lines of the given file in a specified range [start_line, end_line) with new_contents. The new contents can have more or less lines than the interval size (even 0)")),
+                description: Some(String::from("Replace lines of the given file in a specified range [start_line, end_line] with new_contents.\
+                 You will remove the interval including the start_line and the end_line and then place the contents in there instead.\
+                  The new contents can have more or less lines than the interval size (even 0)")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
                     properties: Some(properties),

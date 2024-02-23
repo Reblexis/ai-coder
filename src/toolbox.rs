@@ -1,6 +1,7 @@
 pub mod file_commands;
 pub mod worker_commands;
 pub mod test_commands;
+pub mod version_control;
 
 use std::fs;
 use std::io::Error;

@@ -1,7 +1,7 @@
 use openai_api_rs::v1::chat_completion::*;
 use crate::lm_wrapper::LMInterface;
 use crate::toolbox::Toolbox;
-use crate::toolbox::{file_commands, worker_commands, test_commands};
+use crate::toolbox::{file_commands, worker_commands, test_commands, version_control};
 use crate::input_dialog::read_stdin;
 use std::path::{Path, PathBuf};
 
@@ -35,6 +35,7 @@ pub fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), 
     toolbox.add_tools(worker_commands::get_worker_commands());
     toolbox.add_tools(file_commands::get_file_read_tools());
     toolbox.add_tools(test_commands::get_test_commands());
+    toolbox.add_tools(version_control::get_version_control_commands());
     let mut worker = Worker::new(project_location, behaviour, toolbox);
     let mut ended = false;
     while !ended {

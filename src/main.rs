@@ -1,7 +1,7 @@
 use std::io;
 use std::fs;
 use std::path::Path;
-use toolbox::file_commands::expand_path;
+use shellexpand::full;
 
 
 mod worker;
@@ -17,7 +17,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut project_location = String::new();
     while project_location.is_empty() {
         io::stdin().read_line(&mut project_location)?;
-        project_location = String::from(expand_path(project_location.trim()).unwrap().to_str().unwrap());
+        project_location = String::from(full(project_location.trim())?);
         if !Path::new(&project_location).exists() {
             println!("The location: {} does not exist. Please specify a valid location.", project_location);
             println!("Please specify the project location: ");

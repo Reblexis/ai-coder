@@ -11,9 +11,15 @@ pub mod remove_dir;
 pub mod remove_file;
 pub mod view_files;
 
-pub fn expand_path(path: &str) -> Result<PathBuf, std::io::Error> {
-    let expanded_path = full(path)
+pub fn expand_path(project_location: PathBuf, path: &str) -> Result<PathBuf, std::io::Error> {
+    let binding = project_location.join(path);
+    let full_path = binding.to_str().unwrap();
+    let expanded_path = full(full_path)
         .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Failed to expand path"))?;
+    // Check project_path is prefix of expanded_path
+    if !expanded_path.starts_with(project_location.to_str().unwrap()) {
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, "Path is not within project directory"));
+    }
     Ok(PathBuf::from(expanded_path.as_ref()))
 }
 

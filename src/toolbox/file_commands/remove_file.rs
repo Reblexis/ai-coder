@@ -12,8 +12,7 @@ impl Command for RemoveFileCommand {
     fn execute(&self, parameters: &str, project_location: PathBuf) -> Result<String, Error> {
         // Deserialize the parameters
         let params: RemoveFileParams = serde_json::from_str(parameters)?;
-        let binding = expand_path(project_location.join(params.path).to_str().unwrap())?;
-        let path = binding.to_str().unwrap();
+        let path = expand_path(project_location, params.path.as_str())?;
 
         // Perform the operation
         fs::remove_file(path)?;

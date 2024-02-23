@@ -15,8 +15,7 @@ impl Command for EditFileCommand {
     fn execute(&self, parameters: &str, project_location: PathBuf) -> Result<String, Error> {
         // Deserialize the parameters
         let params: EditFileParams = serde_json::from_str(parameters)?;
-        let binding = expand_path(project_location.join(params.path).to_str().unwrap())?;
-        let path = binding.to_str().unwrap();
+        let path = expand_path(project_location, params.path.as_str())?;
 
         let contents = fs::read_to_string(path.clone())?;
         let mut lines: Vec<&str> = contents.lines().collect();

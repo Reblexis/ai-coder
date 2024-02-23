@@ -12,14 +12,28 @@ impl Command for CompileCommand {
             .current_dir(&project_location)
             .output()?;
 
+        // Return the compilation result
         if output.status.success() {
-            Ok(String::from("Compilation succeeded."))
+            // Join stdout and stderr
+            let feedback = String::from_utf8_lossy(&output.stdout).to_string() + &String::from_utf8_lossy(&output.stderr).to_string();
+            Ok(feedback)
         } else {
             Err(Error::new(ErrorKind::Other, String::from_utf8_lossy(&output.stderr).to_string()))
         }
     }
 
-    fn get_tool_info(&self) -> Tool{
-        // Tool info with function name, description, and no parameters
+    fn get_tool_info(&self) -> Tool {
+        Tool {
+            r#type: ToolType::Function,
+            function: Function {
+                name: String::from("compile"),
+                description: Some(String::from("Tries to compile the current project using the cargo build command. If it doesn't succeed, it will return the error message.")),
+                parameters: FunctionParameters {
+                    schema_type: JSONSchemaType::Object,
+                    properties: None,
+                    required: None,
+                },
+            }
+        }
     }
 }

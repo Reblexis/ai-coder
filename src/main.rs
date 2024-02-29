@@ -8,7 +8,6 @@ mod worker;
 pub mod lm_wrapper;
 pub mod toolbox;
 pub mod input_dialog;
-mod manager_agent;
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

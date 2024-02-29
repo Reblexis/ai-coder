@@ -16,8 +16,7 @@ impl Command for CallWorkerCommand {
         let params: CallWorkerParams = serde_json::from_str(parameters)?;
 
         // Call the worker
-        let mut rt = Runtime::new().unwrap();
-        let result = rt.block_on(worker::call_worker(params.system_message, project_location));
+        let result = worker::call_worker(params.system_message, project_location);
 
         let pretty_result = format!("{:#?}", result);
         Ok({pretty_result})

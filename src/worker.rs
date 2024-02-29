@@ -50,7 +50,7 @@ pub fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), 
     Ok(())
 }
 
-pub async fn call_worker(message: String, project_location: PathBuf)->Result<String, Box<dyn std::error::Error>>{
+pub fn call_worker(message: String, project_location: PathBuf)->Result<String, Box<dyn std::error::Error>>{
     let mut toolbox = Toolbox::new(project_location.clone());
     toolbox.add_tools(file_commands::get_all_file_tools());
     let system_message = String::from("You are a worker whose task is to complete the task you are given by a message.\

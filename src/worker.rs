@@ -30,12 +30,8 @@ impl Worker{
     }
 }
 
-pub fn talk_to_worker(behaviour: String, project_location: PathBuf)->Result<(), Box<dyn std::error::Error>>{
-    let mut toolbox = Toolbox::new(project_location.clone());
-    toolbox.add_tools(worker_commands::get_worker_commands());
-    toolbox.add_tools(file_commands::get_file_read_tools());
-    toolbox.add_tools(test_commands::get_test_commands());
-    toolbox.add_tools(version_control::get_version_control_commands());
+pub fn talk_to_worker(behaviour: String, project_location: PathBuf, toolbox: Toolbox)->Result<(), Box<dyn std::error::Error>>{
+
     let mut worker = Worker::new(project_location, behaviour, toolbox);
     let mut ended = false;
     while !ended {

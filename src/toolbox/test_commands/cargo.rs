@@ -43,11 +43,11 @@ impl Command for CargoCommand{
             function: Function {
                 name: String::from("cargo"),
                 description: Some(String::from("Calls cargo with the given arguments. Can be used for compilation, running tests, etc.")),
-                parameters: FunctionParameters {
+                parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,
-                    properties: None,
-                    required: None,
-                },
+                    properties: Some(properties),
+                    required:Some(vec![String::from("args")]),
+                }
             }
         }
     }

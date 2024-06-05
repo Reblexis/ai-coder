@@ -41,19 +41,21 @@ development plan for the needed changes. You will create the file with specific 
     toolbox.add_tools(file_commands::get_file_write_tools());
     toolbox.add_tools(file_commands::get_file_read_tools());
 
-    worker::talk_to_worker(planner_behaviour, project_location.clone(), toolbox)?;
+   // worker::talk_to_worker(planner_behaviour, project_location.clone(), toolbox)?;
 
     let manager_behaviour = String::from("You are a manager of a coding project in Rust. You are responsible for managing the project.\
 You can call workers who can edit and manage files in the project for you. Your task is to communicate with the user and call these agents.
 You also have to check and verify their work is correct and working. If not you call another worker to fix it and so on until the user is satisfied.
 You have to give very specific instructions to the coding workers so there cannot be any ambiguity in their task descriptions. Give them only very small tasks as they can
-only do a small chunk of coding at a time. Make sure to always check their work.");
+only do a small chunk of coding at a time. Make sure to always check their work. You are also allowed to check their work yourself using read tools or test tools like compiling project.
+One you are 100% sure the task has been done perfectly, you can also call git commands.");
 
     let mut toolbox = Toolbox::new(project_location.clone());
     toolbox.add_tools(worker_commands::get_worker_commands());
     toolbox.add_tools(file_commands::get_file_read_tools());
     toolbox.add_tools(test_commands::get_test_commands());
     toolbox.add_tools(version_control::get_version_control_commands());
+    // pretty print the toolbox
     worker::talk_to_worker(manager_behaviour, project_location.clone(), toolbox)?;
 
     Ok(())

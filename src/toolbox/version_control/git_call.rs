@@ -35,14 +35,14 @@ impl Command for GitCallCommand {
             "args".to_string(),
             Box::new(JSONSchemaDefine {
                 schema_type: Some(JSONSchemaType::String),
-                description: Some("The arguments you want to pass to git. Fx. with args='commit -m 'great commit' will be called 'git commit -m 'great commit'." .to_string()),
+                description: Some("The arguments you want to pass to git. Fx. with args='commit -m 'great commit'' will be called 'git commit -m 'great commit''." .to_string()),
                 ..Default::default()
             }),
         );
         Tool{
             r#type: ToolType::Function,
             function: Function{
-                name: String::from("view_files"),
+                name: String::from("git"),
                 description: Some(String::from("Call any git command with any parameters.")),
                 parameters: FunctionParameters{
                     schema_type: JSONSchemaType::Object,

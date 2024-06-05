@@ -4,14 +4,15 @@ pub struct CargoCommand;
 
 #[derive(Serialize, Deserialize)]
 pub struct CargoParams {
-    command: String,
+    args: String,
 }
 
 impl Command for CargoCommand{
     fn execute(&self, parameters: &str, project_location: PathBuf) -> Result<String, Error> {
+        println!("Executing cargo command");
         // Deserialize the parameters
         let params: CargoParams = serde_json::from_str(parameters)?;
-        let command = params.command;
+        let command = params.args;
 
         let output = std::process::Command::new("cargo")
             .arg(command)
@@ -22,8 +23,10 @@ impl Command for CargoCommand{
         if output.status.success() {
             // Join stdout and stderr
             let feedback = String::from_utf8_lossy(&output.stdout).to_string() + &String::from_utf8_lossy(&output.stderr).to_string();
+            println!("Feedback: {}", feedback);
             Ok(feedback)
         } else {
+            println!("Error: {}", String::from_utf8_lossy(&output.stderr).to_string());
             Err(Error::new(ErrorKind::Other, String::from_utf8_lossy(&output.stderr).to_string()))
         }
     }

@@ -4,14 +4,14 @@ pub struct GitCallCommand;
 
 #[derive(Serialize, Deserialize)]
 pub struct GitCallParams {
-    command: String,
+    args: String,
 }
 
 impl Command for GitCallCommand {
     fn execute(&self, parameters: &str, project_location: PathBuf) -> Result<String, Error> {
         // Deserialize the parameters
         let params: GitCallParams = serde_json::from_str(parameters)?;
-        let command = params.command;
+        let command = params.args;
 
         // Perform the operation
         let output = std::process::Command::new("git")

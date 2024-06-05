@@ -41,6 +41,7 @@ impl Toolbox {
     }
 
     pub fn call_tool(&self, tool_name: &str, parameters: &str) -> Result<String, std::io::Error> {
+        println!("Calling tool: {}", tool_name);
         match self.tools.get(tool_name) {
             Some(tool) => tool.execute(parameters, self.project_location.clone()),
             None => Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Tool not found")),
